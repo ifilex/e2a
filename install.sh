@@ -1,6 +1,6 @@
 #!/bin/bash
 clear
-echo EXE2APK Installer"
+echo "EXE2APK Installer"
 echo "==========================================================="
 echo ""
 echo "- Installing linux packs.."
