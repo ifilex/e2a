@@ -1,0 +1,32 @@
+# EXE2APK 1.05
+## unset LD_PRELOAD in case termux-exec is installed
+# Load the X vars
+termux-x11 :0 >/dev/null 2>&1 & pulseaudio --start --load="module-native-protocol-tcp auth-ip-acl=127.0.0.1 auth-anonymous=1" --exit-idle-time=-1 &>/dev/null
+# Lanza el apk
+am start -n com.termux.x11/com.termux.x11.MainActivity >/dev/null 2>&1 &
+sleep 5
+# Boot Scripts 
+unset LD_PRELOAD
+command="proot"
+command+=" --link2symlink"
+command+=" --kill-on-exit"
+command+=" -0"
+command+=" -r /data/data/com.termux/files/usr/var/lib/proot-distro/installed-rootfs/ubuntu-e2a"
+command+=" -b /dev"
+command+=" -b /proc"
+command+=" -b /sys"
+command+=" -b /data/data/com.termux/files/usr/var/lib/proot-distro/installed-rootfs/ubuntu-e2a/root:/dev/shm"
+command+=" -b /data/data/com.termux/files/usr/tmp:/tmp"
+command+=" -b /sdcard"
+command+=" -w /root"
+command+=" /usr/bin/env -i"
+command+=" HOME=/root"
+command+=" PATH=/usr/local/sbin:/usr/local/bin:/bin:/usr/bin:/sbin:/usr/sbin:/usr/games:/usr/local/games"
+command+=" TERM=$TERM"
+command+=" /bin/bash --login"
+com="$@"
+if [ -z "$1" ];then
+    exec $command
+else
+    $command -c "$com"
+fi
