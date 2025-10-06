@@ -1,0 +1,277 @@
+import os
+import subprocess
+import tkinter as tk
+from tkinter import filedialog, ttk
+from tkinter import scrolledtext
+import threading
+
+class ZipFileManagerApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("EXE2PAK v. 1.0.7")
+        self.root.geometry("900x640")  # Ajuste del tamaño de la ventana
+        self.root.configure(bg="white")
+
+        self.debug_mode = tk.BooleanVar()
+
+        # Historial de archivos ZIP
+        self.historial = []
+
+        # ---- Llamamos a la pantalla principal ----
+        self.create_main_screen()
+
+    def create_main_screen(self):
+        # Limpiamos la pantalla anterior
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # ---- Panel Izquierdo ----
+        left_frame = tk.Frame(self.root, bg="white", bd=0, relief="solid")
+        left_frame.place(x=20, y=20, width=590, height=560)
+
+        label_zip = tk.Label(left_frame, text="Open ZIP App:", font=("Segoe UI", 12), bg="white")
+        label_zip.pack(pady=10)
+
+        # Cuadro de entrada para la carpeta
+        self.folder_entry = tk.Entry(left_frame, width=60, font=("Segoe UI", 12))
+        self.folder_entry.pack(pady=5)
+
+        # Botón para buscar la carpeta
+        btn_browse = ttk.Button(left_frame, text="Browse Folder", command=self.browse_folder)
+        btn_browse.pack(pady=5)
+
+        # Scrollbar para la lista de archivos ZIP
+        self.file_listbox = tk.Listbox(left_frame, height=10, font=("Segoe UI", 12))
+        scrollbar = tk.Scrollbar(left_frame, orient=tk.VERTICAL, command=self.file_listbox.yview)
+        self.file_listbox.config(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.file_listbox.pack(pady=10, fill=tk.BOTH, expand=True)
+
+        # Historial de archivos ZIP
+        label_historial = tk.Label(left_frame, text="ZIP file History:", font=("Segoe UI", 12), bg="white")
+        label_historial.pack(pady=10)
+        self.historial_listbox = tk.Listbox(left_frame, height=4, font=("Segoe UI", 12))
+        self.historial_listbox.pack(pady=5, fill=tk.BOTH, expand=True)
+
+        # Checkbox para el modo debug
+        self.debug_checkbox = tk.Checkbutton(left_frame, text="Debug", variable=self.debug_mode, font=("Segoe UI", 12), bg="white")
+        self.debug_checkbox.pack(pady=5)
+
+        # Cuadro de depuración
+        self.debug_window = scrolledtext.ScrolledText(left_frame, height=4, state='disabled', font=("Consolas", 10))
+        self.debug_window.pack(pady=5, fill=tk.BOTH, expand=True)
+
+        # Doble clic para ejecutar el archivo seleccionado
+        self.file_listbox.bind('<Double-1>', self.on_file_double_click)
+
+        # ---- Panel Derecho ----
+        right_frame = tk.Frame(self.root, bg="white", bd=0, relief="solid")
+        right_frame.place(x=630, y=20, width=250, height=560)
+
+        # Título de las Tareas Iniciales
+        label_tareas = tk.Label(right_frame, text="Initial Task", font=("Segoe UI", 16, "bold"), bg="white")
+        label_tareas.pack(pady=20)
+
+        # Botón "Compress a Program"
+        btn_comprimir = tk.Button(
+            right_frame, text="Compress a Program", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.comprimir_programa, height=2, width=25, relief="flat", bd=0
+        )
+        btn_comprimir.pack(pady=10)
+
+        label_comprimir_desc = tk.Label(
+            right_frame, text="Obtains a binary from an executable by packaging the entire program into a ZIP file", 
+            font=("Segoe UI", 10), bg="white", wraplength=220, justify="center"
+        )
+        label_comprimir_desc.pack(pady=(0, 10))
+
+        # Botón "Compilar APK"
+        btn_apk = tk.Button(
+            right_frame, text="Compile APK", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.compilar_apk, height=2, width=25, relief="flat", bd=0
+        )
+        btn_apk.pack(pady=10)
+
+        label_apk_desc = tk.Label(
+            right_frame, text="An APK file for Android will be generated from the created program's ZIP file.", 
+            font=("Segoe UI", 10), bg="white", wraplength=220, justify="center"
+        )
+        label_apk_desc.pack(pady=(0, 10))
+
+        # Botón "Configurar WineBOX"
+        btn_winebox = tk.Button(
+            right_frame, text="Configure WineBOX", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.configurar_winebox, height=2, width=25, relief="flat", bd=0
+        )
+        btn_winebox.pack(pady=10)
+
+        label_winebox_desc = tk.Label(
+            right_frame, text="The version of Wine to be used on Android is configured.", 
+            font=("Segoe UI", 10), bg="white", wraplength=220, justify="center"
+        )
+        label_winebox_desc.pack(pady=(0, 10))
+
+        # Botón "Crear un proyecto"
+        btn_proyecto = tk.Button(
+            right_frame, text="Make your proyect", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.crear_proyecto_screen, height=2, width=25, relief="flat", bd=0
+        )
+        btn_proyecto.pack(pady=10)
+
+        label_proyecto_desc = tk.Label(
+            right_frame, text="Choose a project template to create your application.", 
+            font=("Segoe UI", 10), bg="white", wraplength=220, justify="center"
+        )
+        label_proyecto_desc.pack(pady=(0, 10))
+
+    def crear_proyecto_screen(self):
+        # Limpiar la ventana
+        for widget in self.root.winfo_children():
+            widget.destroy()
+
+        # Título
+        label_title = tk.Label(self.root, text="Make a proyect", font=("Segoe UI", 16, "bold"), bg="white")
+        label_title.place(x=20, y=20)
+
+        # Subtítulo
+        label_subtitle = tk.Label(self.root, text="Development platforms", font=("Segoe UI", 12), bg="white")
+        label_subtitle.place(x=20, y=60)
+
+        # Botón Dev-C++
+        btn_devcpp = tk.Button(
+            self.root, text="Dev-C++", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.run_devcpp, height=3, width=40, relief="flat", bd=0
+        )
+        btn_devcpp.place(x=20, y=100)
+
+        label_devcpp_desc = tk.Label(
+            self.root, text="Dev-C++ is a full-featured C and C++ Integrated Development Environment (IDE) for Windows platforms.", 
+            font=("Segoe UI", 10), bg="white", wraplength=800, justify="left"
+        )
+        label_devcpp_desc.place(x=20, y=160)
+
+        # Botón FreeBasic
+        btn_freebasic = tk.Button(
+            self.root, text="FreeBasic", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.run_freebasic, height=3, width=40, relief="flat", bd=0
+        )
+        btn_freebasic.place(x=20, y=220)
+
+        label_freebasic_desc = tk.Label(
+            self.root, text="FreeBASIC is a free and open source multiplatform compiler and programming language based on BASIC licensed under the GNU GPL for Microsoft Windows.", 
+            font=("Segoe UI", 10), bg="white", wraplength=800, justify="left"
+        )
+        label_freebasic_desc.place(x=20, y=280)
+
+        # Botón FreePascal
+        btn_freepascal = tk.Button(
+            self.root, text="FreePascal", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.run_freepascal, height=3, width=40, relief="flat", bd=0
+        )
+        btn_freepascal.place(x=20, y=340)
+
+        label_freepascal_desc = tk.Label(
+            self.root, text="FreePascal, aka Free Pascal Compiler (FPC), is a 32 and 64 bit Pascal compiler with extensions for different processors and operating systems.", 
+            font=("Segoe UI", 10), bg="white", wraplength=800, justify="left"
+        )
+        label_freepascal_desc.place(x=20, y=400)
+
+        # Botón CDiv
+        btn_cdiv = tk.Button(
+            self.root, text="Mini GNU C", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.run_cdiv, height=3, width=40, relief="flat", bd=0
+        )
+        btn_cdiv.place(x=20, y=460)
+
+        label_cdiv_desc = tk.Label(
+            self.root, text="Small GNU C distro with Windows 32 bit API", 
+            font=("Segoe UI", 10), bg="white", wraplength=800, justify="left"
+        )
+        label_cdiv_desc.place(x=20, y=520)
+
+        # Botón "Atrás"
+        btn_atras = tk.Button(
+            self.root, text="Back", font=("Segoe UI", 12, "bold"),
+            bg="#f0f0f0", fg="black", command=self.create_main_screen, height=2, width=15, relief="flat", bd=0
+        )
+        btn_atras.place(x=20, y=580)
+
+    # Funciones para cada botón de proyecto
+    def run_devcpp(self):
+        subprocess.run(["devc.exe"])
+
+    def run_freebasic(self):
+        subprocess.run(["fbc.exe"])
+
+    def run_freepascal(self):
+        subprocess.run(["lazarus.exe"])
+
+    def run_cdiv(self):
+        subprocess.run(["minigcc.exe"])
+
+    # Funciones adicionales
+    def browse_folder(self):
+        folder_path = filedialog.askdirectory()  # Abrir cuadro de diálogo para seleccionar una carpeta
+        if folder_path:
+            self.folder_entry.delete(0, tk.END)
+            self.folder_entry.insert(0, folder_path)
+            self.populate_file_list()
+            
+    def populate_file_list(self):
+        folder = self.folder_entry.get()
+        self.file_listbox.delete(0, tk.END)
+        if os.path.isdir(folder):
+            zip_files = [f for f in os.listdir(folder) if f.endswith('.zip')]
+            for file in zip_files:
+                self.file_listbox.insert(tk.END, file)
+
+    def on_file_double_click(self, event):
+        selected = self.file_listbox.curselection()
+        if selected:
+            file_name = self.file_listbox.get(selected[0])
+            full_path = os.path.join(self.folder_entry.get(), file_name)
+
+            # Agregar al historial
+            self.historial.append(full_path)
+            self.historial_listbox.insert(tk.END, full_path)
+
+            if self.debug_mode.get():
+                command = f'wine.exe --debug "{full_path}"'
+                self.run_command(command)
+            else:
+                command = f'wine.exe "{full_path}"'
+                self.run_command(command)
+
+
+    def run_command(self, command):
+        self.debug_window.config(state='normal')
+        self.debug_window.delete(1.0, tk.END)
+        self.debug_window.insert(tk.END, f"Executing: {command}\n")
+        self.debug_window.config(state='disabled')
+
+        # Ejecutar el comando en un hilo separado
+        thread = threading.Thread(target=self.execute_command, args=(command,))
+        thread.start()
+
+    def execute_command(self, command):
+        process = os.popen(command)
+        output = process.read()
+        process.close()
+
+        self.debug_window.config(state='normal')
+        self.debug_window.insert(tk.END, output)
+        self.debug_window.config(state='disabled')
+
+    def comprimir_programa(self):
+        subprocess.run(["winezip.exe"])
+
+    def compilar_apk(self):
+        subprocess.run(["winelink.exe"])
+
+    def configurar_winebox(self):
+        subprocess.run(["wconfig.exe"])
+
+# Creación de la ventana principal
+root = tk.Tk()
+app = ZipFileManagerApp(root)
+root.mainloop()

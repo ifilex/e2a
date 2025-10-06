@@ -1,0 +1,101 @@
+option explicit
+
+// create the window
+dim frame = new wxFrame( 0, -1, "EXE2APK", wxPoint( 10, 10 ), wxSize( 430, 340 ) )
+frame.Centre()
+
+// place a panel in the window
+dim panel = new wxPanel( frame, -1 )
+
+// add a status bar
+dim sBar = frame.CreateStatusBar( 1 )
+sBar.SetStatusText("Version 1.07")
+
+
+dim texto = new wxStaticText( panel, -1, "Welcome to EXE2APK!\n\n"&
+		 "Easily convert EXE or ZIP files into APKs for Android. Customize your app's\n"& 
+		  "name and icon, and generate optimized APKs in just a few steps. Start now\n"& 
+		  "and bring your Windows applications to Android!\n", wxPoint(20,10))
+
+dim texto2 = new wxStaticText( panel, -1, "Select the type of project you want to start:", wxPoint(20,100))
+
+Function boton1(event)
+shared frame
+wxExecute("devc.exe")
+End Function
+
+Function boton2(event)
+shared frame
+wxExecute("fbc.exe")
+End Function
+
+Function boton3(event)
+shared frame
+wxExecute("lazarus.exe")
+End Function
+
+Function boton4(event)
+shared frame
+wxExecute("minigcc.exe")
+End Function
+
+Function boton5(event)
+shared frame
+wxExecute("wexplorer.exe")
+End Function
+
+Function boton16(event)
+shared frame
+wxExecute("WINELINK.EXE")
+End Function
+
+Function boton17(event)
+shared frame
+frame.Close(True)
+End Function
+
+Function boton18(event)
+shared frame
+wxExecute("WCONFIG.EXE")
+End Function
+
+Function boton19(event)
+shared frame
+wxExecute("WINEZIP.EXE")
+End Function
+
+
+dim button1 = new wxButton( panel, -1, "Dev-C++", wxPoint(10, 130) )
+Connect( button1, wxEVT_COMMAND_BUTTON_CLICKED, "boton1" )
+
+dim button2 = new wxButton( panel, -1, "FreeBasic", wxPoint(90, 130) )
+Connect( button2, wxEVT_COMMAND_BUTTON_CLICKED, "boton2" )
+
+dim button3 = new wxButton( panel, -1, "Lazarus", wxPoint(170, 130) )
+Connect( button3, wxEVT_COMMAND_BUTTON_CLICKED, "boton3" )
+
+dim button4 = new wxButton( panel, -1, "GNUC", wxPoint(250, 130) )
+Connect( button4, wxEVT_COMMAND_BUTTON_CLICKED, "boton4" )
+
+dim button5 = new wxButton( panel, -1, "Run Apps", wxPoint(330, 130) )
+Connect( button5, wxEVT_COMMAND_BUTTON_CLICKED, "boton5" )
+
+
+// botones de cierres
+
+dim button18 = new wxButton( panel, -1, "Configure", wxPoint(90, 250) )
+Connect( button18, wxEVT_COMMAND_BUTTON_CLICKED, "boton18" )
+
+dim button19 = new wxButton( panel, -1, "Pre-Compile", wxPoint(170, 250) )
+Connect( button19, wxEVT_COMMAND_BUTTON_CLICKED, "boton19" )
+
+dim button16 = new wxButton( panel, -1, "Compile", wxPoint(250, 250) )
+Connect( button16, wxEVT_COMMAND_BUTTON_CLICKED, "boton16" )
+
+dim button17 = new wxButton( panel, -1, "Close", wxPoint(330, 250) )
+Connect( button17, wxEVT_COMMAND_BUTTON_CLICKED, "boton17" )
+
+
+
+// show the window
+frame.Show(True)

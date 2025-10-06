@@ -1,0 +1,120 @@
+@echo off
+setlocal
+
+REM Mostrar ayuda si no se pasa ningún argumento o si se pasa una opción incorrecta
+if "%~1"=="" (
+    echo Usage: progman [OPTIONS] archivo.zip
+    echo This script runs and manage yours executables pre-compiled in ZIP format for wine.
+    echo.
+    echo Options:
+    echo     --help               Display this help and exit
+    echo     --version            Output version information and exit
+    echo     --debug              Run wine with debug messages
+    exit /b
+)
+
+REM Manejar la opción --help
+if "%~1"=="--help" (
+    echo Usage: wine [OPTIONS] archivo.zip
+    echo This script runs and manages executables pre-compiled in ZIP format for wine.
+    echo.
+    echo Options:
+    echo     --help               Display this help and exit
+    echo     --version            Output version information and exit
+    echo     --debug              Run wine with debug messages
+    exit /b
+)
+
+REM Manejar la opción --version
+if "%~1"=="--version" (
+    echo Progman 1.10 
+    exit /b
+)
+
+REM Verificar si es --debug y que se haya pasado un archivo .zip
+if "%~1"=="--debug" (
+    if "%~2"=="" (
+        echo Error: You must specify a .zip file when using --debug.
+        exit /b
+    )
+    
+    REM Obtener el nombre del archivo sin la extensión
+    setlocal enabledelayedexpansion
+    set "archivo=%~n2"
+    echo Debug: Archivo definido como !archivo!
+
+
+    REM Verificar que el archivo sea .zip
+    if /I "%~x2" NEQ ".zip" (
+        echo Error: Only ZIP files are supported.
+        exit /b
+    )
+
+    REM Imprimir la versión del script
+    echo Wine version 1.75
+    echo.
+    echo Global Variables
+    echo.
+    echo app=!archivo!	
+    echo.
+
+    REM Mostrar mensajes de depuración y creación del archivo index.html
+    echo Debug: Creating index.html for !archivo!.
+    echo ^<!DOCTYPE html^> > tools\boot\resources\app\index.html
+    echo ^<html^> >> tools\boot\resources\app\index.html
+    echo ^<head^> >> tools\boot\resources\app\index.html
+    echo ^    ^<meta http-equiv="x-ua-compatible" content="IE=edge"^> >> tools\boot\resources\app\index.html
+    echo ^    ^<META HTTP-EQUIV="REFRESH" CONTENT="0;URL=winex.html?app=!archivo!&p=dock.exe"^> >> tools\boot\resources\app\index.html
+    echo ^    ^<title^>Loading...^</title^> >> tools\boot\resources\app\index.html
+    echo ^</head^> >> tools\boot\resources\app\index.html
+    echo ^<body^> >> tools\boot\resources\app\index.html
+    echo ^</body^> >> tools\boot\resources\app\index.html
+    echo ^</html^> >> tools\boot\resources\app\index.html
+
+    REM Copiar el archivo zip
+    echo Debug: Copying %~2 to tools\boot\resources\app
+    copy "%~2" tools\boot\resources\app
+
+    REM Ejecutar el comando wine
+    echo Debug: Running wine.
+    tools\boot\wine
+
+    REM Eliminar los archivos después de que el proceso termine
+    echo Debug: Cleaning up files.
+    del tools\boot\resources\app\%~nx2
+    del tools\boot\resources\app\index.html
+
+    echo Debug: Process completed.
+    exit /b
+)
+
+REM Verificar si es un archivo .zip (modo silencioso)
+set "archivo=%~n1"
+if /I "%~x1"==".zip" (
+    REM Crear el archivo index.html sin mensajes
+    echo ^<!DOCTYPE html^> > tools\boot\resources\app\index.html
+    echo ^<html^> >> tools\boot\resources\app\index.html
+    echo ^<head^> >> tools\boot\resources\app\index.html
+    echo ^    ^<meta http-equiv="x-ua-compatible" content="IE=edge"^> >> tools\boot\resources\app\index.html
+    echo ^    ^<META HTTP-EQUIV="REFRESH" CONTENT="0;URL=wine.html?app=%archivo%&p=dock.exe"^> >> tools\boot\resources\app\index.html
+    echo ^    ^<title^>Loading...^</title^> >> tools\boot\resources\app\index.html
+    echo ^</head^> >> tools\boot\resources\app\index.html
+    echo ^<body^> >> tools\boot\resources\app\index.html
+    echo ^</body^> >> tools\boot\resources\app\index.html
+    echo ^</html^> >> tools\boot\resources\app\index.html
+
+    REM Copiar el archivo ZIP
+    copy "%~1" tools\boot\resources\app >nul
+
+    REM Ejecutar wine
+    tools\boot\wine >nul
+
+    REM Eliminar archivos generados
+    del tools\boot\resources\app\%~nx1
+    del tools\boot\resources\app\index.html
+    exit /b
+)
+
+REM Si el argumento no es válido o no es un archivo ZIP
+echo Error: Only ZIP files are supported.
+exit /b

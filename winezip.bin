@@ -1,0 +1,168 @@
+import os
+import zipfile
+from tkinter import Tk, Label, Button, filedialog, Frame, messagebox
+
+# Shared data
+app_data = {"folder": None, "exe": None, "zip_path": None, "step": 0}
+
+def show_step():
+    """Displays the section corresponding to the current step."""
+    for frame in steps_frames:
+        frame.pack_forget()
+    steps_frames[app_data["step"]].pack(side="right", fill="both", expand=True)
+
+    # Enable or disable buttons based on the step
+    back_button.config(state="normal" if app_data["step"] > 0 else "disabled")
+    next_button.config(
+        state="normal" if app_data["step"] < len(steps_frames) - 1 else "disabled"
+    )
+
+def next_step():
+    """Moves to the next step or creates the ZIP in the last step."""
+    if validate_step():
+        # If we are on the last step and press "Next", create the ZIP
+        if app_data["step"] == len(steps_frames) - 1:
+            create_zip()
+        else:
+            app_data["step"] += 1
+            show_step()
+
+def previous_step():
+    """Moves to the previous step."""
+    app_data["step"] -= 1
+    show_step()
+
+def validate_step():
+    """Validates that the current step is complete before moving forward."""
+    if app_data["step"] == 1 and not app_data["folder"]:
+        messagebox.showwarning("Warning", "Select a folder before continuing.")
+        return False
+    if app_data["step"] == 2 and not app_data["exe"]:
+        messagebox.showwarning("Warning", "Select an executable before continuing.")
+        return False
+    if app_data["step"] == 3 and not app_data["zip_path"]:
+        messagebox.showwarning("Warning", "Select where to save the ZIP file.")
+        return False
+    return True
+
+
+def select_folder():
+    folder_path = filedialog.askdirectory(title="Select the program folder")
+    if folder_path:
+        app_data["folder"] = folder_path
+        folder_label.config(text=f"📁 {folder_path}")
+
+def select_exe():
+    exe_path = filedialog.askopenfilename(
+        initialdir=app_data["folder"],
+        title="Select the main executable",
+        filetypes=[("Executable Files", "*.exe")]
+    )
+    if exe_path:
+        app_data["exe"] = exe_path
+        exe_label.config(text=f"🖥️ {exe_path}")
+
+def select_zip_location():
+    zip_folder = filedialog.askdirectory(title="Select where to save the ZIP")
+    if zip_folder:
+        # Update the ZIP file path
+        app_data["zip_path"] = os.path.join(zip_folder, os.path.basename(app_data["exe"]).replace(".exe", ".zip"))
+        zip_label.config(text=f"📦 Save to: {app_data['zip_path']}")
+        next_button.config(state="normal")  # Enable the Next button
+    else:
+        zip_label.config(text="📦 No location selected")
+
+def create_zip():
+    """Creates the ZIP file at the selected location."""
+    try:
+        progress_label.config(text="📊 Creating ZIP file... Please wait.")
+        root.update_idletasks()  # Update the GUI while working
+
+        with zipfile.ZipFile(app_data["zip_path"], 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            for root_folder, _, files in os.walk(app_data["folder"]):
+                for file in files:
+                    file_path = os.path.join(root_folder, file)
+                    arcname = os.path.relpath(file_path, app_data["folder"])
+                    zip_file.write(file_path, arcname)
+
+        progress_label.config(text="✔️ ZIP created successfully.")
+        messagebox.showinfo("Success", f"ZIP file created at:\n{app_data['zip_path']}")
+    except Exception as e:
+        progress_label.config(text="❌ Error creating the ZIP.")
+        messagebox.showerror("Error", f"An error occurred while creating the ZIP file:\n{e}")
+
+def close_app():
+    """Closes the application."""
+    root.quit()
+
+# Main window setup
+root = Tk()
+root.title("Wine ZIP Wizard")
+root.geometry("600x400")
+root.resizable(False, False)
+
+# Left gray panel with text "EXE2APK"
+left_panel = Frame(root, bg="lightgray", width=180)
+left_panel.pack(side="left", fill="y")
+Label(left_panel, text="EXE2APK", bg="lightgray", font=("Segoe UI", 16), pady=20).pack(anchor="center")
+
+# Frames for each step
+steps_frames = []
+
+# Step 1: Welcome
+welcome_frame = Frame(root, bg="white")
+Label(welcome_frame, text="Welcome to the WineZIP Wizard", font=("Segoe UI", 14), bg="white").pack(pady=10)
+Label(
+    welcome_frame,
+    text="This wizard will guide you to create a ZIP file\n"
+         "from a folder and then export it as an APK.",
+    font=("Segoe UI", 12),
+    bg="white",
+    justify="center"
+).pack(pady=10)
+steps_frames.append(welcome_frame)
+
+# Step 2: Select folder
+step1 = Frame(root, bg="white")
+Label(step1, text="Step 1: Select the program folder", font=("Segoe UI", 14), bg="white").pack(pady=10)
+folder_label = Label(step1, text="📁 No folder selected", font=("Segoe UI", 12), bg="white")
+folder_label.pack(pady=5)
+Button(step1, text="Select folder", command=select_folder).pack(pady=10)
+steps_frames.append(step1)
+
+# Step 3: Select executable
+step2 = Frame(root, bg="white")
+Label(step2, text="Step 2: Select the main executable", font=("Segoe UI", 14), bg="white").pack(pady=10)
+exe_label = Label(step2, text="🖥️ No executable selected", font=("Segoe UI", 12), bg="white")
+exe_label.pack(pady=5)
+Button(step2, text="Select executable", command=select_exe).pack(pady=10)
+steps_frames.append(step2)
+
+# Step 4: Select ZIP location
+step3 = Frame(root, bg="white")
+Label(step3, text="Step 3: Select where to save the ZIP file", font=("Segoe UI", 14), bg="white").pack(pady=10)
+zip_label = Label(step3, text="📦 No location selected", font=("Segoe UI", 12), bg="white")
+zip_label.pack(pady=5)
+Button(step3, text="Select location", command=select_zip_location).pack(pady=10)
+progress_label = Label(step3, text="", font=("Segoe UI", 10), bg="white")
+progress_label.pack(pady=5)
+steps_frames.append(step3)
+
+# Navigation buttons (correct order)
+navigation_frame = Frame(root, bg="white")
+navigation_frame.pack(side="bottom", fill="x", pady=10)
+
+cancel_button = Button(navigation_frame, text="Cancel", command=close_app, bg="red", fg="white")
+cancel_button.pack(side="right", padx=5)
+
+next_button = Button(navigation_frame, text="Next >", command=next_step)
+next_button.pack(side="right", padx=5)
+
+back_button = Button(navigation_frame, text="< Previous", command=previous_step, state="disabled")
+back_button.pack(side="right", padx=5)
+
+# Display the first step
+show_step()
+
+# Run the application
+root.mainloop()

@@ -1,0 +1,54 @@
+option explicit
+
+// create the window
+dim frame = new wxFrame( 0, -1, "Configure your Wine Environment", wxPoint( 10, 10 ), wxSize( 430, 340 ) )
+frame.Centre()
+
+// place a panel in the window
+dim panel = new wxPanel( frame, -1 )
+
+// add a status bar
+dim sBar = frame.CreateStatusBar( 1 )
+sBar.SetStatusText("Version 1.07")
+
+
+dim texto = new wxStaticText( panel, -1, "Welcome to Wine Config\n\n\n"&
+		"This application allows you to set up your Wine environment for emulation\n"& 
+		"on Android. Select the version of Wine you want to use.\n", wxPoint(20,10))
+
+dim texto2 = new wxStaticText( panel, -1, "Select the Wine version:", wxPoint(20,100))
+
+
+Function boton3(event)
+shared frame
+wxExecute("winecfg.exe --version wine-17")
+End Function
+
+Function boton4(event)
+shared frame
+wxExecute("winecfg.exe --version wine-50")
+End Function
+
+Function boton17(event)
+shared frame
+frame.Close(True)
+End Function
+
+
+
+dim button3 = new wxButton( panel, -1, "Wine 1.7", wxPoint(170, 130) )
+Connect( button3, wxEVT_COMMAND_BUTTON_CLICKED, "boton3" )
+
+dim button4 = new wxButton( panel, -1, "Wine 5.0", wxPoint(170, 160) )
+Connect( button4, wxEVT_COMMAND_BUTTON_CLICKED, "boton4" )
+
+
+// botones de cierres
+
+dim button17 = new wxButton( panel, -1, "Close", wxPoint(330, 250) )
+Connect( button17, wxEVT_COMMAND_BUTTON_CLICKED, "boton17" )
+
+
+
+// show the window
+frame.Show(True)

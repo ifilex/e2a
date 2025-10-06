@@ -1,0 +1,119 @@
+#!/bin/sh
+
+cc()
+{
+echo Compilando $1 ..
+gcc -c $1 -I. -I../../../include -D__WINESRC__ -D_REENTRANT -fPIC -Wall -pipe \
+  -fno-strict-aliasing -Wdeclaration-after-statement -Wno-packed-not-aligned -Wstrict-prototypes \
+  -Wunused-but-set-parameter -Wwrite-strings -Wpointer-arith -gdwarf-2 -fno-omit-frame-pointer \
+  -g -O2
+}
+
+cc c_037.c
+cc c_10000.c
+cc c_10001.c
+cc c_10002.c
+cc c_10003.c
+cc c_10004.c
+cc c_10005.c
+cc c_10006.c
+cc c_10007.c
+cc c_10008.c
+cc c_10010.c
+cc c_10017.c
+cc c_10021.c
+cc c_10029.c
+cc c_1006.c
+cc c_10079.c
+cc c_10081.c
+cc c_10082.c
+cc c_1026.c
+cc c_1250.c
+cc c_1251.c
+cc c_1252.c
+cc c_1253.c
+cc c_1254.c
+cc c_1255.c
+cc c_1256.c
+cc c_1257.c
+cc c_1258.c
+cc c_1361.c
+cc c_20127.c
+cc c_20866.c
+cc c_20932.c
+cc c_21866.c
+cc c_28591.c
+cc c_28592.c
+cc c_28593.c
+cc c_28594.c
+cc c_28595.c
+cc c_28596.c
+cc c_28597.c
+cc c_28598.c
+cc c_28599.c
+cc c_28600.c
+cc c_28603.c
+cc c_28604.c
+cc c_28605.c
+cc c_28606.c
+cc c_424.c
+cc c_437.c
+cc c_500.c
+cc c_737.c
+cc c_775.c
+cc c_850.c
+cc c_852.c
+cc c_855.c
+cc c_856.c
+cc c_857.c
+cc c_860.c
+cc c_861.c
+cc c_862.c
+cc c_863.c
+cc c_864.c
+cc c_865.c
+cc c_866.c
+cc c_869.c
+cc c_874.c
+cc c_875.c
+cc c_878.c
+cc c_932.c
+cc c_936.c
+cc c_949.c
+cc c_950.c
+cc compose.c
+cc cpsymbol.c
+cc cptable.c
+cc decompose.c
+cc digitmap.c
+cc ffs.c
+cc fold.c
+cc fstatvfs.c
+cc getopt.c
+cc getopt1.c
+cc interlocked.c
+cc isfinite.c
+cc isinf.c
+cc isnan.c
+cc lstat.c
+cc mbtowc.c
+cc memcpy_unaligned.c
+cc memmove.c
+cc mkstemps.c
+cc poll.c
+cc pread.c
+cc pwrite.c
+cc readlink.c
+cc rint.c
+cc spawn.c
+cc statvfs.c
+cc strcasecmp.c
+cc strerror.c
+cc strncasecmp.c
+cc strnlen.c
+cc symlink.c
+cc usleep.c
+cc utf8.c
+cc wctomb.c
+
+sh link.sh
